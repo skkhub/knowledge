@@ -77,3 +77,52 @@
 ## 动画卡顿优化方法
 - 使用RequestAnimationFrame，在每个16ms快结束时归还主线程，执行ui操作，通过断断续修的执行js，使动画看起来流程不卡顿
 - transform 只涉及合成器线程和栅格线程，无需和js抢夺主线程
+
+## webview内核分类
+
+### ios
+- uiwebview
+> 从ios2开始存在
+  - 内存泄漏
+  - 极高内存峰值
+  - touch delay 300ms
+  - js运行性能和通信限制
+  - 自动注入cookie
+  - 2018年ios12以后不再维护
+- wkwebview
+  - 内存开销小很多
+  - 60fps的滚动刷新率
+  - 自带支持右滑返回手势
+  - 支持更多html属性
+  - 可以和js直接互调函数，不像uiwebview需要第三方库webviewjsbridge来协助处理js的交互
+  - 不支持页面缓存
+  - 不会自动注入cookie
+  - 无法发送post参数
+### Android
+- Webkit for webview
+  - 小于 android4.4
+  - 内存占用小
+- chromium for webview
+  - 大于 android4.4
+  - 支持大多数h5
+  - 内存占用大
+  - 支持webauido
+  - 支持webgl
+  - 支持webrtc
+### android第三方
+- x5内核
+  - 速度快
+  - 省流量
+  - 更安全
+  - 更稳定
+  - 兼容好
+  - 体验优：夜间模式、适屏排版、字体设置
+  - 功能全：H5\es6+支持好
+  - 视频支持好，格式多，集成了强大的视频播放器
+  - 视频和文件格式支持的比系统内核多
+  - 防劫持：内核做了特殊处理
+
+### 浏览器优化
+- 设置全局webview
+  - 牺牲初始内存
+  - 提升页面加载速度
