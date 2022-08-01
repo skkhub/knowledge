@@ -24,6 +24,9 @@ useEffect(() => {
   // js
 }, [data]);
 ```
+- useLayoutEffect
+> useLayoutEffect 同步执行，会在渲染之前执行
+> useEffect 异步执行，会在渲染之后执行，可能导致闪屏
 
 ## react
 ### 特点
@@ -83,3 +86,60 @@ useEffect(() => {
 - componentDidMount是最好的选择
 - constructor从定位而言不推荐，主要用于初始化state与函数绑定，不承载业务逻辑，且类属性的流行，致使它很少使用
 - componentWillMount已被标记废弃
+
+### 类组件与函数组件有什么区别
+#### 共同点
+- 实际用途一样，都可作为基础组件展示UI
+
+#### 不同点
+- 心智模型：OOP FP
+- 使用场景：生命周期
+- 独有功能：生命周期
+- 设计模式：继承
+- 未来趋势：Hooks
+- 性能优化：
+  - 类组件 shouldComponentUpdate 阻断渲染
+  - 函数组件 React.memo 缓存渲染结果
+
+### 如何设计react组件
+#### 设计分类
+- 展示组件
+  - 代理组件
+  - 样式组件
+  - 布局组件
+- 灵巧组件
+  - 容器组件
+  - 高阶组件
+    - 逻辑复用
+    - 链式调用
+    - 渲染劫持
+    - 缺陷
+      - 丢失静态函数
+      - refs属性不能透传
+
+#### 工程实践
+- 目录结构划分
+- 引入工程管理
+
+### setState是同步场景还是异步场景
+#### 合成事件
+- React给document、渲染节点挂上事件监听
+- DOM事件触发后冒泡到document
+- React找到对应的组件，造出一个合成事件
+- 按组件树模拟一遍事件冒泡
+
+#### 分场景
+- 控制点：isBatchingUpdates
+- 同步更新场景：原生事件中，如：addEventListener\setTimeout\setInterval
+
+- 异步场景
+  - 非真异步
+  - 场景：
+    - react生命周期
+    - 合成事件
+      - 执行顺序
+        - 17以前：挂载到document
+        - 17：挂载到渲染节点
+      - 兼容性更强
+      - 提升性能
+  - 原因：保持内部一致性、启用并发更新
