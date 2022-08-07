@@ -63,3 +63,38 @@
 ### 增强用户体验
 - 设置favicon
 - 增加首屏必要的css和js（骨架背景）
+
+### lighthouse
+> 谷歌推出的性能检测工具
+```js
+npm i -g lighthouse
+```
+
+### 计算浏览器的fps
+```js
+let lastTime = performance.now();
+let frame = 0;
+let lastFameTime = performance.now();
+const loop = (time) => {
+    const now = performance.now();
+    lastFameTime = now;
+    frame++;
+    if (now >= 1000 + lastTime) {
+        let fps = frame / ((now - lastTime) / 1000);
+        frame = 0;
+        lastTime = now;
+        console.log(fps);
+    }
+    else {
+        window.requestAnimationFrame(loop);
+    }
+}
+
+```
+
+### 代码约束框架
+- 针对js的ESLint    airbnb eslint rule
+- 针对样式的Stylelint
+- 针对代码提交的Commitlint
+- 针对代码风格的Prettier
+- 针对编辑器风格的Editorconfig

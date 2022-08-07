@@ -28,6 +28,19 @@ useEffect(() => {
 > useLayoutEffect 同步执行，会在渲染之前执行
 > useEffect 异步执行，会在渲染之后执行，可能导致闪屏
 
+### useRef
+- 方法，返回一个可变的ref对象，包含current属性
+- 每次返回的对象是同一个，且整个生命周期内保持不变
+- 对象的值发生改变后不会触发render
+
+### useMemo
+- useMemo(() => {}, [deps]);
+- 可以用做函数组件的返回值，替代React.memo
+
+### useCallback
+- 返回个带缓存的func，如果函数组件内部定义了function并且用到了内部变量，可以考虑使用useCallback包裹
+
+
 ## react
 ### 特点
 - 声明式
@@ -143,3 +156,99 @@ useEffect(() => {
       - 兼容性更强
       - 提升性能
   - 原因：保持内部一致性、启用并发更新
+
+  
+### 虚拟DOM的工作原理是什么
+> 通过js对象模拟DOM节点
+#### 优点
+  性能优越
+  规避xss
+  可跨平台
+  - 大量的直接操作DOM容易引起网页性能下降，这时React基于虚拟DOM的diff处理与批处理操作，可降低DOM的操作范围与频次，提升页面性能
+  - 首次渲染和微量操作时渲染速度比直接渲染更慢
+  - 虚拟DOM内部确保字符转义，但留有dangerouselySetInnerHTML API绕过转义
+
+  - 虚拟DOM跨平台的成本更低
+
+#### 缺点
+- 内存占用高：对象表示包含了完整的dom信息
+- 无法进行极致优化
+
+#### 其他应用
+- 埋点统计
+- 数据记录
+
+### React的渲染流程
+- Fiber Reconciler 是16及以后版本的渲染方案，核心设计是增量渲染，将渲染工作分割为多区块，将其分散到多个帧中执行
+
+### 分析和调优性能瓶颈
+- 网页APM工具（Application Performance Moniter）
+- FCP 首次绘制内容的耗时
+- TTI 页面可交互时间
+- 静态资源及API请求成功率：通过performance.getEntries()
+- TP(Top Percentile)
+  - TP50：高于50%的情况
+  - TP90：高于90%的情况
+
+> 如果一个移动端页面加载时长超过3秒，用户就会离开
+
+> 我负责的业务是crm管理后台，用户付费进行操作使用，有一套标准的业务流程。在我做完性能优化以后，付费率提升了17%，效果还可以。前期管理后台的基础性能数据是没有的，我接手后接入了一套APM工具，才有了基础的性能数据。然后我对指标观察了一周多，思考了业务形态，发现其实用户对后台系统加载速度要求并不高，但对性能的稳定性要求比较高。我也发现静态资源的加载成功率并不高，TP99的成功率大约在91%，这是因为静态资源直接从服务器拉取，服务器宽带形成了瓶颈，导致加载失败。我对webpack的构建工作流做了改造，支持发布到cdn。改造后，TP99提升到了99.9%。
+
+### 状态管理框架rematch
+- 基于redux
+- 减少了书写复杂度
+- 全局分发器（dispatch）
+
+### react hooks的使用限制
+### what
+  - 不能在循环、条件、嵌套函数中使用hook
+  - 只能在函数组件中使用
+### why
+  - 设计初衷：改进组件开发模式
+  - 问题领域
+    - 组件间难以复用状态逻辑
+    - 复杂的组件难以理解
+    - 人和机器都容易混淆类
+  - 方案原理：not magic,just arrays
+### how: eslint-plugin-react-hooks
+
+### React常用的工具库
+#### 初始化
+- create-react-app
+  - 创建工程
+  - react-app-rewired配置
+- dva 一站式解决方案
+- umi 一站式解决方案
+- create-react-library 创建库
+- StoryBook 维护大规模组件
+
+#### 开发
+- 路由：react-router
+- 样式
+  - css模块化
+  - css in js
+    - emotion 提供props接口消灭内联样式
+    - styled-components 通过模板字符串提供基础的样式组件
+- 基础组件：antd
+- 功能组件
+  - 拖拽：react-dnd\react-draggable
+  - 预览pdf：react-pdf-viewer
+  - 视频播放：Video-React
+  - 长列表：react-window
+- 状态管理：Redux、Mobx
+
+#### 构建
+- 构建
+  - webpack 常规大型项目交付
+  - rollup 库交付
+  - esbuild 高性能构建
+#### 检查
+- 代码规范检查：eslint
+- 代码测试
+  - jest 测试框架
+  - enzyme 测试工具库
+  - react-testing-library 针对react dom的测试工具库
+  - react-hooks-testing-library 针对hooks的测试工具库
+
+#### 发布
+- s3-plugin-webpack 发布静态文件到s3[亚马逊对象存储服务]（https://aws.amazon.com/cn/s3/）新用户免费12个月
