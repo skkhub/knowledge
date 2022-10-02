@@ -1,4 +1,10 @@
 ## Hooks
+### 注意事项
+- 只能在函数内部最外层调用Hook，不能在循环、判断、或子函数中调用
+> 单个组件编写多个hook，调用顺序由书写顺序决定，内部实现是一个链表式调用。若不能保证每次渲染的位置一致就不能保证它能正常工作
+- 只能在React函数组件里调用Hook，不能在JS函数中调用
+
+### 列表
 - useState
 > 变成响应式
 ```js
@@ -17,11 +23,64 @@ const Home = () => {
   </div>
 }
 ```
+> react中setState是同步的还是异步？什么场景下是异步的，可不可能是同步，什么场景下又是同步的？
+
+> setState 只在合成事件和钩子函数中是“异步”的，在原生事件和 setTimeout 中都是同步的。
+> setState的“异步”并不是说内部由异步代码实现，其实本身执行的过程和代码都是同步的，只是合成事件和钩子函数的调用顺序在更新之前，导致在合成事件和钩子函数中没法立马拿到更新后的值，形式了所谓的“异步”，当然可以通过第二个参数 setState(partialState, callback) 中的callback拿到更新后的结果。
+> setState 的批量更新优化也是建立在“异步”（合成事件、钩子函数）之上的，在原生事件和setTimeout 中不会批量更新，在“异步”中如果对同一个值进行多次 setState ， setState 的批量更新策略会对其进行覆盖，取最后一次的执行，如果是同时 setState 多个不同的值，在更新时会对其进行合并批量更新。
+```js
+// 获取更新后的值
+setState(partialState, callback); // 可通过callback拿到
+```
+
+- useReducer
+> 进阶版useState，批量更新数据，例如：登录状态的变更
+> 可以配合useContext，将dispatch传递给子组件
+> 可以有第3个参数，初始化，提取初始化参数可以方便reset
+```js
+function loginReducer(state, action) {
+  switch(action.type) {
+    case 'login':
+        return {
+            ...state,
+            isLoading: true,
+            error: '',
+        }
+    case 'success':
+        return {
+            ...state,
+            isLoggedIn: true,
+            isLoading: false,
+        }
+    case 'error':
+        return {
+            ...state,
+            error: action.payload.error,
+            name: '',
+            pwd: '',
+            isLoading: false,
+        }
+    default: 
+        return state;
+  }
+}
+
+const [state, dispatch] = useReducer(loginReducer, initState);
+const { name, pwd, isLoading, error, isLoggedIn } = state;
+// 可以将dispatch下发给子组件，触发更新
+dispatch({ type: 'success' }); //调用
+```
+
 - useEffect
 > 依赖变动而跟随执行
+> 可以当生命周期钩子使用，[]
 ```js
 useEffect(() => {
   // js
+  // 如果返回了一个函数，则会在组件卸载时自动调用
+  return () => {
+    // 组件卸载时自动调用
+  }
 }, [data]);
 ```
 - useLayoutEffect
@@ -39,6 +98,94 @@ useEffect(() => {
 
 ### useCallback
 - 返回个带缓存的func，如果函数组件内部定义了function并且用到了内部变量，可以考虑使用useCallback包裹
+
+
+- useContext 
+```js
+  import React, { useContext } from "react";
+
+  const themes = {
+    light: {
+      foreground: "#000000",
+      background: "#eeeeee"
+    },
+    dark: {
+      foreground: "#ffffff",
+      background: "#222ccc"
+    }
+  };
+
+  const ThemeContext = React.createContext(themes.light); // 也可以不传初始值
+
+  function App() {
+    return (
+      <ThemeContext.Provider value={themes.dark}>
+        <Toolbar />
+      </ThemeContext.Provider>
+    );
+  }
+
+  function Toolbar(props) {
+    return (
+      <div>
+        <ThemedButton />
+      </div>
+    );
+  }
+
+  function ThemedButton() {
+    const theme = useContext(ThemeContext);
+    return (
+      <button style={{ background: theme.background, color: theme.foreground }}>
+        I am styled by theme context!
+      </button>
+    );
+  }
+```
+
+- useMemo
+> 可以类比vue 的 computed 方法，返回一个可缓存的值
+> 参数跟useEffect一致，会在组件第一次渲染时执行，之后会在依赖变量更新时执行；返回缓存变量
+
+- useCallback
+> 参数跟useEffect一致，会在组件第一次渲染时执行，之后会在依赖变量更新时执行；返回缓存函数
+> 一般用于：向子组件传递的参数是function时
+> useCallback(cb, deps),它相当于useMemo(() => cb, deps)
+
+- useRef
+> 返回一个可变的 ref 对象，其 .current 属性被初始化为传入的参数（initialValue）。
+
+- 自定义Hooks
+> 共享组件之间的状态逻辑可以使用自定义hooks（或者render props和高阶组件）
+> 自定义Hook是一个函数，以use开头，在自定义 Hook 中调用其他 Hook
+
+## react-router-dom
+- exact 精准匹配
+
+## 浅比较 Object.is
+
+## HOC 高阶组件
+- React.memo
+```js
+function MyComponent(props) {
+  /* render using props */
+}
+function areEqual(prevProps, nextProps) {
+  /*
+  return true if passing nextProps to render would return
+  the same result as passing prevProps to render,
+  otherwise return false
+  */
+}
+export default React.memo(MyComponent, areEqual);
+//在 Function Component 之外，在声明一个 areEqual 方法来判断两次 props 有什么不同，如果第二个参数不传递，则默认只会进行 props 的浅比较。
+```
+
+## Fiber
+- 英文翻译时纤维，比线程更细的线
+- requestIdleCallback
+- 时间分片
+
 
 
 ## react
@@ -252,3 +399,26 @@ useEffect(() => {
 
 #### 发布
 - s3-plugin-webpack 发布静态文件到s3[亚马逊对象存储服务]（https://aws.amazon.com/cn/s3/）新用户免费12个月
+### 如何跨组件通信
+#### 一层
+- 父与子
+  - props
+- 子与父
+  - 回调函数
+  - 实例函数
+- 兄弟
+  - 父组件中转
+#### 多层
+- 分类：无直接关系
+- context
+- 全局变量与事件
+- 状态管理框架
+
+### React状态管理框架
+- context存储的变量难以追溯数据源以及确认变动点
+#### flux
+
+#### redux
+
+#### mobx
+
